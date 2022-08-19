@@ -68,3 +68,15 @@
 .arrow--icon:hover{
   color: #FFF5E1;
 }
+
+
+@media screen and (max-width: 600px) {
+  .break--label {
+    width: 35vw;
+    height: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+}

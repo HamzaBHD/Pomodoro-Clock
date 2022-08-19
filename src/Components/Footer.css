@@ -1,6 +1,6 @@
 .footer {
     width: 550px;
-    height: 55px;
+    height: 35px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -28,4 +28,10 @@
   }  
   .icons:hover{
     color: #FFF5E1;
+  }
+
+  @media screen and (max-width: 600px) {
+    .footer {
+      width: 330px;
+    }
   }
