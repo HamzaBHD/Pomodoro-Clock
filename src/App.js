@@ -1,8 +1,7 @@
 import './App.css';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import Footer from './Components/Footer'
-import alarm from './alarm.mp3'
 import Label from './Components/Label';
 
 function App() {
@@ -12,15 +11,11 @@ function App() {
   const [sessionLength, setSessionLength] = useState(25 * 60)
   const [timerOn, setTimerOn] = useState(false)
   const [onBreak, setOnBreak] = useState(false)
-  const [sound, setSound] = useState(
-    new Audio(alarm)
-    )
-    
-  const playSound = () => {
-    sound.currentTime = 0;
-    sound.play();
-  };
-    
+
+  const audio = 'https://raw.githubusercontent.com/freeCodeCamp/cdn/master/build/testable-projects-fcc/audio/BeepSound.wav'
+  
+  let audioElement = useRef(null)
+
   useEffect(() => {
     if(display <= 0){
       setOnBreak(true);
@@ -28,7 +23,13 @@ function App() {
     } else if(!timerOn && display === breakLength){
       setOnBreak(false)
     }
+    console.log('test')
   }, [display, onBreak, timerOn, breakLength, sessionLength])
+
+  const playSound = () => {
+    audioElement.currentTime = 0;
+    audioElement.play();
+  }
 
   const formatDate = (time) => {
     const minutes = Math.floor(time/60)
@@ -40,27 +41,36 @@ function App() {
     )
   }
 
+  const formatDateLength = (time) => {
+    return time / 60
+  }
+
   const updateTime = (amount, type) => {
     if(type === 'break'){
-      if(breakLength <= 60 && amount < 0){
-        return
+      if((breakLength <= 60 && amount < 0) ||  breakLength >= 60 * 60){
+        return;
       }
       setBreakLength((prev) => prev + amount)
     } else {
-      if(sessionLength <= 60 && amount < 0){
-        return
+      if((sessionLength <= 60 && amount < 0) || sessionLength >= 60 * 60){
+        return;
       }
       setSessionLength((prev) => prev + amount)
       if(!timerOn){
-        setDisplay(display + amount)
+        setDisplay(sessionLength + amount)
       }
     }
   }
 
   const handleReset = () => {
-    setBreakLength(5 * 60)
-    setSessionLength(25 * 60)
-    setDisplay(25 * 60)
+    clearInterval(localStorage.getItem('interval-id'));
+    setDisplay(25 * 60);
+    setBreakLength(5 * 60);
+    setSessionLength(25 * 60);
+    audioElement.pause();
+    audioElement.current = 0;
+    setTimerOn(false);
+    setOnBreak(false);
   }
 
 
@@ -69,6 +79,7 @@ function App() {
     let date = new Date().getTime();
     let nextDate = new Date().getTime() + second;
     let onBreakVariable = onBreak;
+
       if(!timerOn){
         let interval = setInterval(() => {
           date = new Date().getTime();
@@ -93,7 +104,7 @@ function App() {
     if(timerOn){
       clearInterval(localStorage.getItem('interval-id'));
     }
-    setTimerOn(prev => !prev)
+    setTimerOn(!timerOn)
   }
 
  
@@ -107,22 +118,24 @@ function App() {
             title={'BREAK LENGTH'}
             type={'break'}
             updateTime={updateTime}
-            time={formatDate(breakLength)}
+            time={formatDateLength(breakLength)}
             increment={'break-increment'}
             decrement={'break-decrement'}
+            name={'break-length'}
             />
             <Label
             id={'session-label'}
             title={'SESSION LENGTH'}
             type={'session'}
             updateTime={updateTime}
-            time={formatDate(sessionLength)}
+            time={formatDateLength(sessionLength)}
             increment={'session-increment'}
             decrement={'session-decrement'}
+            name={'session-length'}
             />
           </div>
           <div className='count--section'>
-          <h3 id='timer-label' className='count--title'>{onBreak ? 'BREAK TIME' : 'SESSION TIME'}</h3>
+          <h3 id='timer-label' className='count--title'>{onBreak ? 'Break' : 'Session'}</h3>
               <div className='count--display'>
                 <span id='time-left' className='numbers'>{formatDate(display)}</span>
               </div>
@@ -148,6 +161,7 @@ function App() {
         </div>
         <Footer />
       </div>
+      <audio ref={el => audioElement = el} src={audio} id='beep' />
     </div>
   );
 }
